@@ -195,6 +195,10 @@
   }
 
   function registerHit(targetEl, clientX, clientY) {
+    // Already-hit guard: the popped target stays in the DOM for 140ms,
+    // so a second click on it during the pop animation must not score again.
+    if (targetEl.dataset.hit) return;
+    targetEl.dataset.hit = '1';
     var spawnedAt = parseFloat(targetEl.dataset.spawnedAt || '0');
     var reaction = Math.max(0, Math.round(performance.now() - spawnedAt));
     reactionTimes.push(reaction);
