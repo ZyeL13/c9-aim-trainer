@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C9 Aim Trainer — Cloud9 Booth Mini Game</title>
+  <meta name="description" content="C9 Aim Trainer: a fast, mouse-only flick-shot trainer built for the Cloud9 booth. 60-second rounds, instant scores, offline local leaderboard.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span class="brand-name">C9 AIM TRAINER</span>
+        <span class="brand-sub">Cloud9 Booth Mini Game</span>
+      </div>
+      <div class="top-actions">
+        <button id="soundToggle" class="btn btn-ghost" type="button" aria-pressed="true">Sound: On</button>
+        <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Game status">
+      <div class="hud-item">
+        <span class="hud-label">Time</span>
+        <span class="hud-value" id="timeValue">60</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="scoreValue">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Combo</span>
+        <span class="hud-value" id="comboValue">×0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Hits</span>
+        <span class="hud-value" id="hitsValue">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Misses</span>
+        <span class="hud-value" id="missesValue">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">Accuracy</span>
+        <span class="hud-value" id="accuracyValue">—</span>
+      </div>
+    </section>
+
+    <main class="layout">
+      <div class="arena-wrap">
+        <div id="arena" class="arena" role="application" aria-label="Aim trainer arena. Click the targets as fast as you can.">
+          <!-- Start overlay -->
+          <div id="startOverlay" class="overlay">
+            <h1>Flick. Click. <span class="accent">Beat the clock.</span></h1>
+            <p class="tagline">60 seconds. Targets appear — click them before they fade. Fast hits score more. Misses break your combo.</p>
+            <div class="duration-row" role="group" aria-label="Round length">
+              <span class="duration-label">Round:</span>
+              <button class="duration-btn" type="button" data-duration="30">30s</button>
+              <button class="duration-btn is-active" type="button" data-duration="60">60s</button>
+              <button class="duration-btn" type="button" data-duration="90">90s</button>
+            </div>
+            <button id="startBtn" class="btn btn-primary btn-big" type="button">▶&nbsp; START</button>
+            <p class="hint">Mouse only. No tutorial needed — just click the targets.</p>
+          </div>
+
+          <!-- End overlay -->
+          <div id="endOverlay" class="overlay hidden">
+            <h2>Time's up!</h2>
+            <div class="results">
+              <div class="result"><span class="result-label">Score</span><span class="result-value" id="finalScore">0</span></div>
+              <div class="result"><span class="result-label">Accuracy</span><span class="result-value" id="finalAccuracy">—</span></div>
+              <div class="result"><span class="result-label">Best streak</span><span class="result-value" id="finalStreak">0</span></div>
+              <div class="result"><span class="result-label">Avg reaction</span><span class="result-value" id="finalReaction">—</span></div>
+              <div class="result"><span class="result-label">Hits / Misses</span><span class="result-value" id="finalHits">0 / 0</span></div>
+            </div>
+            <div class="save-row">
+              <label for="playerName">Your name</label>
+              <input id="playerName" type="text" maxlength="12" value="PLAYER" autocomplete="off" spellcheck="false">
+              <button id="saveScoreBtn" class="btn btn-primary" type="button">Save score</button>
+            </div>
+            <p id="saveNote" class="save-note" aria-live="polite"></p>
+            <div class="end-actions">
+              <button id="playAgainBtn" class="btn btn-primary btn-big" type="button">Play again</button>
+              <button id="nextPlayerBtn" class="btn btn-ghost btn-big" type="button">Next player</button>
+            </div>
+            <p class="hint" id="idleNote">Booth mode: this screen resets automatically after 60s of no activity.</p>
+          </div>
+        </div>
+        <p class="arena-foot">Tip: centre hits count the same as edge hits — speed is what pays. A miss anywhere breaks your combo.</p>
+      </div>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>🏆 Booth leaderboard</h2>
+          <p class="panel-sub">Top 10 · saved on this device · works offline</p>
+          <ol id="leaderboard" class="leaderboard"></ol>
+          <p id="leaderboardEmpty" class="panel-sub">No scores yet — be the first.</p>
+          <button id="clearBoardBtn" class="btn btn-ghost btn-small" type="button">Clear leaderboard</button>
+        </section>
+        <section class="panel">
+          <h2>How it scores</h2>
+          <ul class="rules">
+            <li><strong>Base 100</strong> per hit, plus a speed bonus (up to +100 for the fastest flicks).</li>
+            <li><strong>Combo bonus:</strong> +5 per hit in your current streak, capped at +100.</li>
+            <li><strong>Miss</strong> (clicking empty space or letting a target fade) resets the combo to zero.</li>
+            <li>Targets shrink as the round goes on — stay sharp.</li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>C9 Aim Trainer — an original mini game built for the Cloud9 x JetBrains hackathon, Category 3 (Event Mini Game). No Riot Games assets, names, or logos are used.</span>
+    </footer>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
