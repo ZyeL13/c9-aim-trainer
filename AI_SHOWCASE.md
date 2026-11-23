@@ -69,6 +69,45 @@ a GUI IDE session.
 | Docs written last, if at all, and inconsistent with the game | README, methodology, shot list and this case study written from the same facts, in the same session |
 | Bugs found by judges | Bugs found by the playtest and fixed before submission |
 
+## Upgrade round v1.1.1 (24 Nov 2026, agent-built; WebStorm + Junie pass to follow)
+
+**What happened, honestly.** The v1.1.1 upgrade — Clutch Challenge Mode,
+Kiosk Mode (fullscreen + attract screen + hidden admin), the 60s-only ranked
+leaderboard with practice modes, save-failure reporting, the accuracy /
+reaction-time tie-break, personal bests, the Performance Card, and the
+score-to-phone QR — was executed by the AI agent (Muse) against a written
+spec, on the headless build machine. It was **not** done inside a WebStorm
+GUI session and Junie did not review it: the JetBrains trial codes (All
+Products Pack + AI Ultimate) arrived by email the same day the round was
+executed, and the agent chose to ship the upgrade now rather than hold the
+schedule for the IDE pass. A real WebStorm/Junie pass follows later as a
+separate, dated addendum to this file — it will not rewrite this section to
+pretend the v1.1.1 round happened in the IDE.
+
+**What the agent did.** Read the 290-line spec, rewrote `game.js` (v1.1.1),
+`index.html` (mode selector, legend, board tabs, Performance Card, QR
+canvas, attract overlay, hidden admin panel) and `style.css` (target kinds,
+clutch banner, combo arena states, kiosk chrome), vendored Nayuki's
+`qrcodegen.js` (MIT, verified by SHA-256 and a Node test), and updated the
+README, methodology, shot list, and this case study in the same commit.
+One genuine bug was found and fixed during the work: a score cut by the
+top-10 slice would have been reported as a storage failure — it now reports
+honestly that the score did not make the board.
+
+**What verified it.** A 58-check automated suite (puppeteer-core + headless
+Chromium, `~/workspace/devpost/c9-video/test-v111.js`) ran green with 0
+console/page errors: exact-arithmetic checks for the bonus (+150), penalty
+(−100), and clutch-phase doubling; save failure + retry; tie-break with
+identical entries; all three idle-reset triggers; both boards and tabs;
+attract and admin flows; and a QR payload byte-identical to the saved entry.
+The demo video was re-recorded from the real game with the same pipeline.
+Every QA checklist row is ticked from that run.
+
+**What Junie / WebStorm will still do.** Open the real project with the
+trial codes, run Inspect Code, take a Junie review pass over `game.js`, and
+generate or extend the automated tests — with screenshots and a screen
+recording as evidence, recorded here as its own dated section.
+
 ## Bottom line
 
 AI did not replace the decisions — category choice, game concept, scoring

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C9 Aim Trainer — Cloud9 Booth Mini Game</title>
-  <meta name="description" content="C9 Aim Trainer: a fast, mouse-only flick-shot trainer built for the Cloud9 booth. 60-second rounds, instant scores, offline local leaderboard.">
+  <meta name="description" content="C9 Aim Trainer: a fast, mouse-only flick-shot trainer built for the Cloud9 booth. Classic and Clutch Challenge modes, 60-second ranked rounds, offline local leaderboard, Kiosk Mode.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230b1e33'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%234fc3f7'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,11 +12,12 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span class="brand-mark" id="brandMark" aria-hidden="true">◎</span>
         <span class="brand-name">C9 AIM TRAINER</span>
         <span class="brand-sub">Cloud9 Booth Mini Game</span>
       </div>
       <div class="top-actions">
+        <button id="kioskBtn" class="btn btn-ghost" type="button" aria-pressed="false">Kiosk mode</button>
         <button id="soundToggle" class="btn btn-ghost" type="button" aria-pressed="true">Sound: On</button>
         <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
       </div>
@@ -24,69 +25,114 @@
 
     <section class="hud" aria-label="Game status">
       <div class="hud-item">
+        <span class="hud-label">Mode</span>
+        <span class="hud-value" id="modeChip" aria-live="off">CLASSIC</span>
+      </div>
+      <div class="hud-item">
         <span class="hud-label">Time</span>
-        <span class="hud-value" id="timeValue">60</span>
+        <span class="hud-value" id="timeValue" aria-live="off">60</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Score</span>
-        <span class="hud-value" id="scoreValue">0</span>
+        <span class="hud-value" id="scoreValue" aria-live="off">0</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Combo</span>
-        <span class="hud-value" id="comboValue">×0</span>
+        <span class="hud-value" id="comboValue" aria-live="off">×0</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Hits</span>
-        <span class="hud-value" id="hitsValue">0</span>
+        <span class="hud-value" id="hitsValue" aria-live="off">0</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Misses</span>
-        <span class="hud-value" id="missesValue">0</span>
+        <span class="hud-value" id="missesValue" aria-live="off">0</span>
       </div>
       <div class="hud-item">
         <span class="hud-label">Accuracy</span>
-        <span class="hud-value" id="accuracyValue">—</span>
+        <span class="hud-value" id="accuracyValue" aria-live="off">—</span>
       </div>
     </section>
 
     <main class="layout">
       <div class="arena-wrap">
         <div id="arena" class="arena" role="application" aria-label="Aim trainer arena. Click the targets as fast as you can.">
+          <div id="clutchBanner" class="clutch-banner hidden" aria-live="polite">CLUTCH PHASE · POINTS ×2</div>
+
           <!-- Start overlay -->
           <div id="startOverlay" class="overlay">
             <h1>Flick. Click. <span class="accent">Beat the clock.</span></h1>
             <p class="tagline">60 seconds. Targets appear — click them before they fade. Fast hits score more. Misses break your combo.</p>
+            <div class="mode-row" role="group" aria-label="Game mode">
+              <span class="duration-label">Mode:</span>
+              <button id="modeClassicBtn" class="mode-btn is-active" type="button">Classic</button>
+              <button id="modeClutchBtn" class="mode-btn" type="button">Clutch Challenge</button>
+            </div>
+            <div id="clutchLegend" class="clutch-legend hidden">
+              <span><i class="dot dot-normal" aria-hidden="true"></i> Normal — standard points</span>
+              <span><i class="dot dot-bonus" aria-hidden="true"></i> ★ Gold bonus — +150</span>
+              <span><i class="dot dot-penalty" aria-hidden="true"></i> ✕ Red penalty — −100, combo lost</span>
+              <span>Targets move. Final 15s: CLUTCH phase — all points ×2.</span>
+            </div>
             <div class="duration-row" role="group" aria-label="Round length">
               <span class="duration-label">Round:</span>
-              <button class="duration-btn" type="button" data-duration="30">30s</button>
-              <button class="duration-btn is-active" type="button" data-duration="60">60s</button>
-              <button class="duration-btn" type="button" data-duration="90">90s</button>
+              <button class="duration-btn" type="button" data-duration="30">30s · Practice</button>
+              <button class="duration-btn is-active" type="button" data-duration="60">60s · Ranked</button>
+              <button class="duration-btn" type="button" data-duration="90">90s · Practice</button>
             </div>
             <button id="startBtn" class="btn btn-primary btn-big" type="button">▶&nbsp; START</button>
             <p class="hint">Mouse only. No tutorial needed — just click the targets.</p>
           </div>
 
           <!-- End overlay -->
-          <div id="endOverlay" class="overlay hidden">
+          <div id="endOverlay" class="overlay end-overlay hidden">
             <h2>Time's up!</h2>
-            <div class="results">
+            <div id="endResults" class="results" aria-live="polite">
               <div class="result"><span class="result-label">Score</span><span class="result-value" id="finalScore">0</span></div>
               <div class="result"><span class="result-label">Accuracy</span><span class="result-value" id="finalAccuracy">—</span></div>
               <div class="result"><span class="result-label">Best streak</span><span class="result-value" id="finalStreak">0</span></div>
               <div class="result"><span class="result-label">Avg reaction</span><span class="result-value" id="finalReaction">—</span></div>
               <div class="result"><span class="result-label">Hits / Misses</span><span class="result-value" id="finalHits">0 / 0</span></div>
             </div>
-            <div class="save-row">
+            <div class="end-extras">
+              <div class="perf-card" id="perfCard">
+                <div class="perf-head"><span>Performance Card</span><span class="perf-rating" id="perfRating">C</span></div>
+                <div class="perf-grid">
+                  <div class="perf-stat"><span class="perf-label">Score</span><span class="perf-value" id="perfScore">0</span></div>
+                  <div class="perf-stat"><span class="perf-label">Accuracy</span><span class="perf-value" id="perfAccuracy">—</span></div>
+                  <div class="perf-stat"><span class="perf-label">Avg reaction</span><span class="perf-value" id="perfReaction">—</span></div>
+                  <div class="perf-stat"><span class="perf-label">Best streak</span><span class="perf-value" id="perfStreak">0</span></div>
+                  <div class="perf-stat"><span class="perf-label">Rank</span><span class="perf-value" id="perfRank">—</span></div>
+                </div>
+              </div>
+              <div id="qrWrap" class="qr-wrap hidden">
+                <canvas id="qrCanvas" width="185" height="185" aria-label="QR code with your score"></canvas>
+                <p class="qr-caption">Scan to keep your score</p>
+              </div>
+            </div>
+            <p id="pbLine" class="pb-line"></p>
+            <p id="rankLine" class="rank-line"></p>
+            <div class="save-row" id="saveRow">
               <label for="playerName">Your name</label>
               <input id="playerName" type="text" maxlength="12" value="PLAYER" autocomplete="off" spellcheck="false">
               <button id="saveScoreBtn" class="btn btn-primary" type="button">Save score</button>
             </div>
+            <p id="practiceNote" class="practice-note hidden">Practice mode — scores don't count toward the leaderboard.</p>
             <p id="saveNote" class="save-note" aria-live="polite"></p>
             <div class="end-actions">
               <button id="playAgainBtn" class="btn btn-primary btn-big" type="button">Play again</button>
               <button id="nextPlayerBtn" class="btn btn-ghost btn-big" type="button">Next player</button>
             </div>
-            <p class="hint" id="idleNote">Booth mode: this screen resets automatically after 60s of no activity.</p>
+            <p class="hint" id="idleNote" role="status">Booth mode: this screen resets automatically after 60s of no activity.</p>
+          </div>
+
+          <!-- Attract overlay (kiosk idle) -->
+          <div id="attractOverlay" class="overlay attract hidden">
+            <span class="attract-mark" aria-hidden="true">◎</span>
+            <h2>C9 AIM TRAINER</h2>
+            <p class="attract-cta">TOUCH TO PLAY</p>
+            <ol id="attractTop3" class="attract-top3"></ol>
+            <p class="hint">Top scores on this booth</p>
           </div>
         </div>
         <p class="arena-foot">Tip: centre hits count the same as edge hits — speed is what pays. A miss anywhere breaks your combo.</p>
@@ -94,11 +140,14 @@
 
       <aside class="side">
         <section class="panel">
-          <h2>🏆 Booth leaderboard</h2>
+          <h2>Booth leaderboard</h2>
           <p class="panel-sub">Top 10 · saved on this device · works offline</p>
+          <div class="board-tabs" role="group" aria-label="Leaderboard board">
+            <button id="boardTabClassic" class="board-tab is-active" type="button">Classic</button>
+            <button id="boardTabClutch" class="board-tab" type="button">Clutch</button>
+          </div>
           <ol id="leaderboard" class="leaderboard"></ol>
           <p id="leaderboardEmpty" class="panel-sub">No scores yet — be the first.</p>
-          <button id="clearBoardBtn" class="btn btn-ghost btn-small" type="button">Clear leaderboard</button>
         </section>
         <section class="panel">
           <h2>How it scores</h2>
@@ -107,15 +156,40 @@
             <li><strong>Combo bonus:</strong> +5 per hit in your current streak, capped at +100.</li>
             <li><strong>Miss</strong> (clicking empty space or letting a target fade) resets the combo to zero.</li>
             <li>Targets shrink as the round goes on — stay sharp.</li>
+            <li><strong>Clutch Challenge:</strong> targets move; gold ★ targets are worth +150, red ✕ targets cost −100 and break your combo. Final 15 seconds: all points ×2.</li>
+            <li>Only <strong>60s</strong> rounds count toward the leaderboard — 30s and 90s are practice.</li>
           </ul>
         </section>
       </aside>
     </main>
 
     <footer class="footer">
-      <span>C9 Aim Trainer — an original mini game built for the Cloud9 x JetBrains hackathon, Category 3 (Event Mini Game). No Riot Games assets, names, or logos are used.</span>
+      <span>C9 Aim Trainer <span id="versionEl">v1.1.1</span> — an original mini game built for the Cloud9 x JetBrains hackathon, Category 3 (Event Mini Game). Classic and Clutch Challenge modes, Kiosk Mode, offline leaderboard. No Riot Games assets, names, or logos are used.</span>
     </footer>
   </div>
+
+  <!-- Hidden booth admin panel (long-press the brand mark for 3s) -->
+  <div id="adminPanel" class="admin-panel hidden" role="dialog" aria-label="Booth admin panel">
+    <h2>Booth admin</h2>
+    <div class="admin-row">
+      <button id="adminClearClassicBtn" class="btn btn-ghost admin-clear" type="button"><span class="hold-fill"></span>Hold to clear Classic board</button>
+      <button id="adminClearClutchBtn" class="btn btn-ghost admin-clear" type="button"><span class="hold-fill"></span>Hold to clear Clutch board</button>
+    </div>
+    <div id="adminClearConfirmWrap" class="admin-confirm hidden">
+      <p id="adminClearLabel"></p>
+      <input id="adminClearInput" type="text" placeholder="Type CLEAR" autocomplete="off" spellcheck="false">
+      <button id="adminClearConfirmBtn" class="btn btn-primary" type="button">Confirm clear</button>
+      <p id="adminClearError" class="admin-error"></p>
+    </div>
+    <div class="admin-row">
+      <button id="adminExitKioskBtn" class="btn btn-ghost" type="button">Exit kiosk mode</button>
+      <button id="adminSoundBtn" class="btn btn-ghost" type="button" aria-pressed="true">Sound: On</button>
+      <button id="adminCloseBtn" class="btn btn-ghost" type="button">Close</button>
+    </div>
+    <p class="hint">Panel closes after 30s of no interaction.</p>
+  </div>
+
+  <script src="vendor/qrcodegen.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
